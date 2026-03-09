@@ -1,13 +1,13 @@
 package daysteps
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"time"
-	"log"
-	
+
 	"github.com/Yandex-Practicum/tracker/internal/spentcalories"
 )
 
@@ -23,25 +23,25 @@ func parsePackage(data string) (int, time.Duration, error) {
 	// Разделяем строку через запятую
 	parts := strings.Split(data, ",")
 	if len(parts) != 2 {
-		return 0, 0, errors.New("некорректный формат данных")
+		return 0, 0, errors.New("invalid data format")
 	}
 
 	// Парсим кол-во шагов
 	steps, err := strconv.Atoi(parts[0])
 	if err != nil {
-		return 0, 0, errors.New("ошибка преобразования количества шагов")
+		return 0, 0, err
 	}
 	if steps <= 0 {
-		return 0, 0, errors.New("кол-во шагов должно быть больше 0")
+		return 0, 0, errors.New("steps count must be greater than 0")
 	}
 
 	// Парсим продолжительность
 	duration, err := time.ParseDuration(parts[1])
 	if err != nil {
-		return 0, 0, errors.New("ошибка преобразования продолжительности")
+		return 0, 0, err
 	}
 	if duration <= 0 {
-    return 0, 0, errors.New("продолжительность должна быть больше 0")
+		return 0, 0, errors.New("duration count must be greater than 0")
 	}
 
 	// Возвращаем результат кол-ва шагов
@@ -63,13 +63,12 @@ func DayActionInfo(data string, weight, height float64) string {
 		log.Println("Ошибка парсинга: некорректное количество шагов")
 		return ""
 	}
-	
-	// Проверяем продолжительность
-    if duration < 0 {
-        log.Println("Ошибка парсинга: отрицательная продолжительность")
-        return ""
-    }
 
+	// Проверяем продолжительность
+	if duration < 0 {
+		log.Println("Ошибка парсинга: отрицательная продолжительность")
+		return ""
+	}
 
 	// Вычисляем дистанцию в метрах
 	distanceMeters := float64(steps) * stepLength
@@ -80,9 +79,9 @@ func DayActionInfo(data string, weight, height float64) string {
 	// Вычисляем калории через step-by-step/internal/spentcalories
 	calories, err := spentcalories.WalkingSpentCalories(steps, weight, height, duration)
 	if err != nil {
-        log.Println("Ошибка вычисления калорий:", err)
-        return ""
-    }
+		log.Println("Ошибка вычисления калорий:", err)
+		return ""
+	}
 
 	// Вывод результата
 	result := fmt.Sprintf(
